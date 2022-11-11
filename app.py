@@ -2,7 +2,7 @@ import streamlit as st
 from module.mmm.linearMMM import mmm_model
 # from module.mmm.adstock_2 import adstock
 from module.mmm.dataTransform import readData
-from module.mmm.sideBar import sidebarTool
+from module.minorTool.sideBar import sidebarTool
 from module.mta.mtaResult import mtaModel
 from module.markov.dataTransform import markovModel
 from module.spendOps.spendOptimise import spend_ops
