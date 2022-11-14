@@ -1,10 +1,18 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import statsmodels.tsa.api as tsa
 from sklearn.linear_model import LinearRegression
 
 from .mmmTransform import row_to_pivot
-from .visualPlot import modelPlot
+from .visualPlot import modelPlot, adstock_plot, predict_model
+
+
+def adstock(x, theta):
+    return tsa.filters.recursive_filter(x, theta)
+
+
+def saturation(x, beta):
+    return x ** beta
 
 
 def mmm_model(df):
@@ -12,10 +20,11 @@ def mmm_model(df):
         date_range, mmm_df = row_to_pivot(df)
         X = mmm_df.drop('Revenue', axis=1)
         y = mmm_df['Revenue']
-
         model = LinearRegression()
+        # model = Lasso(alpha=1)
         model.fit(X, y)
         score = model.score(X, y)
+        y_pred = model.predict(X)
 
         coef = []
         for i, j in zip(model.coef_, X.columns):
@@ -29,41 +38,27 @@ def mmm_model(df):
             st.subheader(f'Base Sales (Weekly): RM {model.intercept_:.2f}')
         with model_cols[1]:
             st.subheader(f"R\u00b2: {score:.4f}")
-        dimension = st.radio('Metrics:', ['Coefficient', 'Contribution', 'ROAS'], horizontal=True)
-
-        weights = pd.Series(
-            model.coef_,
-            index=X.columns
-        )
-        base = model.intercept_
-        unadj_contributions = X.mul(weights).assign(Base=base)
-        base_col = unadj_contributions.pop('Base')
-        unadj_contributions.insert(0, 'Base', base_col)
-        adj_contributions = (unadj_contributions
-                             .div(unadj_contributions.sum(axis=1), axis=0)
-                             .mul(y, axis=0)
-                             )  # contains all contributions for each week
-        sales_from_channel = adj_contributions[X.columns].sum()
-        spendings_on_channel = X.sum()
-        predicted_roas = sales_from_channel / spendings_on_channel
-        predicted_roas = predicted_roas.reset_index()
-        predicted_roas.columns = ['params', 'roas']
-        plot_df = pd.merge(plot_df, predicted_roas, on='params', how='left')
+        dimension = st.radio('Metrics:', ['Coefficient', 'Contribution'], horizontal=True)
         fig = modelPlot(plot_df, date_range, dimension)
         st.plotly_chart(fig, use_container_width=True)
 
-        fig, ax = plt.subplots()
-        adj_contributions.plot.area(
-            figsize=(16, 8),
-            linewidth=1,
-            title='Contribution Plot of each Channel',
-            ylabel='Contribution',
-            xlabel='Date',
-            ax=ax)
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(
-            handles[::-1], labels[::-1],
-            title='Channels', loc="center left",
-            bbox_to_anchor=(1.01, 0.5)
-        )
-        st.pyplot(fig)
+        fig_model = predict_model(X.index, y, y_pred)
+        st.plotly_chart(fig_model, use_container_width=True)
+
+        adstock_cols = st.columns((1, 1))
+        with adstock_cols[0]:
+            st.write('Adstock')
+            theta = st.number_input('Theta:', min_value=0.0, max_value=1.0, value=0.1, step=0.05)
+            channel1 = st.selectbox('Channel', [c for c in X.columns], key='adstock')
+            cha1 = X[channel1]
+            fig1 = adstock_plot('Adstock', adstock, cha1, theta)
+            st.plotly_chart(fig1, use_container_width=True)
+
+        with adstock_cols[1]:
+            st.write('Diminishing Return')
+            beta = st.number_input('Beta:', min_value=0.0, max_value=1.0, value=0.1, step=0.05)
+            channel2 = st.selectbox('Channel', [c for c in X.columns], key='diminishing')
+            cha2 = X[channel2]
+            fig2 = adstock_plot('Diminishing Return', saturation, cha2, beta)
+            st.plotly_chart(fig2, use_container_width=True)
+

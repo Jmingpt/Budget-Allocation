@@ -25,3 +25,37 @@ def modelPlot(df, date_range, dimension):
 
     return fig
 
+
+def predict_model(x, y, y_pred):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x,
+                             y=y,
+                             mode='lines',
+                             name='Actual'))
+
+    fig.add_trace(go.Scatter(x=x,
+                             y=y_pred,
+                             mode='lines',
+                             name='Predicted'))
+
+    fig.update_layout(title='Prediction',
+                      height=400,
+                      yaxis_title='Revenua')
+
+    return fig
+
+
+def adstock_plot(title, func_, x, hyperparams):
+    result = func_(x, hyperparams)
+    x = result.index
+    y = result.values
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x,
+                             y=y,
+                             mode='lines'))
+
+    fig.update_layout(title=title,
+                      height=400,
+                      yaxis_title=title)
+
+    return fig

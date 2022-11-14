@@ -1,16 +1,16 @@
-arviz==0.12.1
+aesara==2.8.7
+arviz==0.13.0
+holidays==0.17
 httpx-oauth==0.10.1
 matplotlib==3.6.2
-numpy==1.22.0
-optuna==3.0.3
+numpy==1.22.1
 pandas==1.5.1
 plotly==5.11.0
-pymc3==3.11.5
+pymc==4.3.0
 python-dotenv==0.21.0
 scikit-learn==1.1.3
-scipy==1.7.3
+scipy==1.8.0
 seaborn==0.12.1
+statsmodels== 0.13.1
 streamlit==1.14.0
-streamlit-marquee==0.0.7
-streamlit-option-menu==0.3.2
 xgboost==1.7.1

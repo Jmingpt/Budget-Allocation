@@ -18,14 +18,14 @@ def readData(file_connection_method):
                         s = str(bytes_data, 'utf-8')
                         data = StringIO(s)
                         df_ga = pd.read_csv(data)
-                        df_ga['Date'] = pd.to_datetime(df_ga['Date'])
+                        df_ga['Date'] = pd.to_datetime(df_ga['Date']).dt.to_pydatetime()
 
                     elif 'fb' in str(f.name).lower() or 'facebook' in str(f.name).lower():
                         bytes_data = f.read()
                         s = str(bytes_data, 'utf-8')
                         data = StringIO(s)
                         df_fb = pd.read_csv(data)
-                        df_fb['Date'] = pd.to_datetime(df_fb['Date'])
+                        df_fb['Date'] = pd.to_datetime(df_fb['Date']).dt.to_pydatetime()
 
                 df = dataMapping(df_ga, df_fb)
                 return df
@@ -35,7 +35,7 @@ def readData(file_connection_method):
 
             if uploaded_file:
                 df = pd.read_csv(uploaded_file)
-                df['Date'] = pd.to_datetime(df['Date'])
+                df['Date'] = pd.to_datetime(df['Date']).dt.to_pydatetime()
                 df = df[df['Channel'] != 'Facebook'].reset_index(drop=True)
                 return df
 
